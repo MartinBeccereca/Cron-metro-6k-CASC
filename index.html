@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronómetro de Natación</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 20px;
+            background-color: #f4f9f4;
+            color: #2c3e50;
+        }
+        /* Cronómetro */
+        #cronometro {
+            font-size: 18em;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        button, input, select {
+        margin: 10px;
+        padding: 10px 20px;
+        font-size: 1em;
+        border: 2px solid #1e5631;
+        color: black;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+        button:hover, input:hover, select:hover {
+        transform: scale(1.05);
+    }
+
+    button:active, input:active, select:active {
+        transform: scale(0.98);
+    }
+        #tramos {
+            margin-top: 20px;
+            text-align: left;
+            margin-left: 10%;
+            margin-right: 10%;
+        }
+        .tramo {
+            font-size: 1.2em;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .tramo select {
+            margin-left: 10px;
+        }
+        #equiposList {
+            margin-bottom: 20px;
+        }
+        #marcarFinalizar {
+            display: none;
+        }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 80%;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        table, th, td {
+            border: 1px solid #1e5631;
+        }
+
+        th {
+            background-color: #1e5631;
+            color: white;
+            padding: 15px;
+        }
+
+        td {
+            padding: 10px;
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        /* Botones secundarios */
+        button.secondary {
+            background-color: #d4e7d0;
+            color: #2c3e50;
+            border: 2px solid #1e5631;
+        }
+
+        button.secondary:hover {
+            background-color: #c3e0c3;
+            color: #2c3e50;
+        }
+        #pauseResume {
+        color: black;
+        border: 2px solid #1e5631;
+        display: none; /* Ocultar el botón de pausa al principio */
+    }
+    .imagen-inferior-derecha {
+            position: absolute;
+            bottom: 0; /* Posición en la parte inferior */
+            right: 0;  /* Posición en la esquina derecha */
+            width: 300px; /* Ajusta el tamaño de la imagen */
+            height: auto; /* Mantiene la proporción de la imagen */
+        }
+    </style>
+</head>
+<body>
+    <h1>NADO NOCTURNO 6K - Club Atlético Social Corralense</h1>
+    <div id = 'orden'>
+        <h3>Ingrese los equipos según orden de Andarivel (1,2,3,4,5,6,7,8)</h3>
+    </div>
+    <img src="Calco NADO.png" alt="Logo Nado 6k" class="imagen-inferior-derecha">
+    <div id="agregarEquipoSection">
+        <input id="equipoInput" type="text" placeholder="Ingrese nombre del equipo" />
+        <button id="agregarEquipo">Agregar Equipo</button>
+        <div id="equiposList"></div>
+    </div>
+
+    <div id="cronometro">00:00:00</div>
+    <button id="start">Empezar</button>
+    <button id="pauseResume">Pausar</button>
+
+    <div id="marcarFinalizar">
+        <button id="lap">Marcar Tramo</button>
+        <button id="stop">Terminar</button>
+    </div>
+
+    <div id="tramos"></div>
+
+    <script>
+        let equipos = [];
+        let andarivelesAsignados = 0;
+        let startTime, timerInterval;
+        let elapsedTime = 0;
+        let lapCount = 0;
+        let previousLapTime = 0;
+        let tramosData = []
+        let isPaused = false;
+
+        const cronometro = document.getElementById('cronometro');
+        const lapButton = document.getElementById('lap');
+        const stopButton = document.getElementById('stop');
+        const lapsContainer = document.getElementById('tramos');
+        const equipoInput = document.getElementById('equipoInput');
+        const agregarEquipoButton = document.getElementById('agregarEquipo');
+        const agregarEquipoSection = document.getElementById('agregarEquipoSection');
+        const equiposList = document.getElementById('equiposList');
+        const marcarFinalizarDiv = document.getElementById('marcarFinalizar');
+
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+            const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+            const seconds = String(totalSeconds % 60).padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`;
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toTimeString().split(' ')[0]; // Retorna HH:MM:SS
+        }
+
+        function startCronometro() {
+            if (equipos.length === 0) {
+                alert("Por favor, agregue al menos un equipo antes de empezar.");
+                return;
+            }
+            
+            if (!isPaused) {
+            startTime = Date.now() - elapsedTime;
+            timerInterval = setInterval(() => {
+                elapsedTime = Date.now() - startTime;
+                cronometro.textContent = formatTime(elapsedTime);
+            }, 1000);
+        }
+
+            startTime = Date.now() - elapsedTime;
+            timerInterval = setInterval(() => {
+                elapsedTime = Date.now() - startTime;
+                cronometro.textContent = formatTime(elapsedTime);
+            }, 1000);
+
+            document.getElementById('start').style.display = 'none';
+            document.getElementById('pauseResume').style.display = "inline"; // Mostrar el botón de pausa/reanudar
+            document.getElementById('orden').style.display = 'none';
+
+            // Ocultar la sección de agregar equipos
+            agregarEquipoSection.style.display = "none";
+
+            // Mostrar botones de Marcar Tramo y Finalizar
+            marcarFinalizarDiv.style.display = "block";
+
+            // Registrar hora de inicio
+            const startTimeElement = document.createElement('div');
+            startTimeElement.className = "tramo";
+            startTimeElement.textContent = `Inicio: ${getCurrentTime()}`;
+            lapsContainer.appendChild(startTimeElement);
+        }
+
+        function markLap() {
+            lapCount++;
+            const lapTime = elapsedTime;
+            if (lapCount === 1) {
+                lapDifference = 0;
+            } else {
+                lapDifference = lapTime - previousLapTime;
+            }
+
+            /// Crear elemento del tramo
+            const lapElement = document.createElement('div');
+            lapElement.className = "tramo";
+
+            // Crear un select dinámicamente
+            const selectElement = document.createElement('select');
+            selectElement.innerHTML = `
+                <option value="">Seleccione un equipo</option>
+                ${equipos.map(equipo => `<option value="${equipo.nombre}">${equipo.nombre}</option>`).join('')}
+            `;
+
+            // Crear un span para mostrar el andarivel
+            const andarivelSpan = document.createElement('span');
+            andarivelSpan.id = `andarivel-${lapCount}`;
+
+            // Variable para almacenar el equipo seleccionado
+            let equipoSeleccionado = "";
+
+            // Agregar un listener al select para guardar el equipo seleccionado
+            selectElement.addEventListener('change', function () {
+                equipoSeleccionado = selectElement.value; // Guardar el equipo seleccionado
+                const andarivel = equipos.find(equipo => equipo.nombre === equipoSeleccionado)?.andarivel || "N/A";
+                andarivelSpan.textContent = andarivel ? ` - Andarivel ${andarivel}` : "";
+            });
+
+            // Añadir contenido del tramo al elemento
+            lapElement.innerHTML = `
+                Tramo ${lapCount}: ${formatTime(lapTime)} 
+                (Diferencia: ${formatTime(lapDifference)}) - Hora: ${getCurrentTime()}
+            `;
+
+            // Agregar el select y el span al lapElement
+            lapElement.appendChild(selectElement);
+            lapElement.appendChild(andarivelSpan);
+
+            // Agregar el tramo completo al contenedor
+            lapsContainer.appendChild(lapElement);
+
+            // Guardar el tramo en la lista de datos
+            const tramoData = {
+                posicion: lapCount,
+                equipo: equipoSeleccionado || "Sin asignar",
+                tiempo: formatTime(lapTime),
+                andarivel: andarivelSpan.textContent.trim() || "N/A",
+            };
+
+            // Actualizar los datos del tramo dinámicamente al cambiar el equipo
+            selectElement.addEventListener('change', function () {
+                tramoData.equipo = equipoSeleccionado || "Sin asignar";
+                tramoData.andarivel = andarivelSpan.textContent.trim() || "N/A";
+            });
+
+            // Agregar los datos del tramo a la lista
+            tramosData.push(tramoData);
+
+            console.log(tramosData); // Verificar los datos en consola
+
+            previousLapTime = lapTime; // Actualizar tiempo del último tramo
+        }
+
+        function mostrarAndarivel(selectElement) {
+            const equipoSeleccionado = selectElement.value;
+            const andarivel = equipos.find(equipo => equipo.nombre === equipoSeleccionado)?.andarivel || "";
+            const spanAndarivel = selectElement.nextElementSibling;
+            spanAndarivel.textContent = andarivel ? ` - Andarivel ${andarivel}` : "";
+        }
+
+        function stopCronometro() {
+            clearInterval(timerInterval);
+
+            // Limpiar la pantalla
+            document.body.innerHTML = `
+                <h1>NADO NOCTURNO 6K - Club Atlético Social Corralense</h1>
+                <h2>Posiciones Finales</h2>
+            `;
+            // Crear tabla de resultados
+            const table = document.createElement('table');
+            const thead = document.createElement('thead');
+            const tbody = document.createElement('tbody');
+
+            thead.innerHTML = `
+                <tr>
+                    <th>Posición</th>
+                    <th>Equipo</th>
+                    <th>Tiempo del Tramo</th>
+                    <th>Andarivel</th>
+                </tr>
+            `;
+
+            tramosData.forEach(tramo => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${tramo.posicion}</td>
+                    <td>${tramo.equipo}</td>
+                    <td>${tramo.tiempo}</td>
+                    <td>${tramo.andarivel}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            table.appendChild(thead);
+            table.appendChild(tbody);
+            document.body.appendChild(table);
+        }
+
+        function agregarEquipo() {
+            const equipoNombre = equipoInput.value.trim();
+            if (equipoNombre === "") {
+                alert("Ingrese un nombre válido para el equipo.");
+                return;
+            }
+
+            if (equipos.find(equipo => equipo.nombre === equipoNombre)) {
+                alert("Este equipo ya está registrado.");
+                return;
+            }
+
+            if (andarivelesAsignados >= 8) {
+                alert("No se pueden agregar más de 8 equipos (andariveles).");
+                return;
+            }
+
+            andarivelesAsignados++;
+            equipos.push({ nombre: equipoNombre, andarivel: andarivelesAsignados });
+            equipoInput.value = "";
+
+            // Actualizar lista de equipos en pantalla
+            const equipoElement = document.createElement('div');
+            equipoElement.textContent = `Equipo: ${equipoNombre} - Andarivel ${andarivelesAsignados}`;
+            equiposList.appendChild(equipoElement);
+        }
+
+        function pauseResumeCronometro() {
+            if (isPaused) {
+                // Reanudar el cronómetro
+                startTime = Date.now() - elapsedTime;
+                timerInterval = setInterval(() => {
+                    elapsedTime = Date.now() - startTime;
+                    cronometro.textContent = formatTime(elapsedTime);
+                }, 1000);
+                document.getElementById('pauseResume').textContent = "Pausar";
+                isPaused = false;
+            } else {
+                // Pausar el cronómetro
+                clearInterval(timerInterval);
+                document.getElementById('pauseResume').textContent = "Reanudar";
+                isPaused = true;
+            }
+        }
+
+document.getElementById('pauseResume').addEventListener('click', pauseResumeCronometro);
+
+        document.getElementById('start').addEventListener('click', startCronometro);
+        lapButton.addEventListener('click', markLap);
+        stopButton.addEventListener('click', stopCronometro);
+        agregarEquipoButton.addEventListener('click', agregarEquipo);
+    </script>
+</body>
+</html>
